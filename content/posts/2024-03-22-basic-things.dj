@@ -1,0 +1,383 @@
+# Basic Things
+
+After working on initial stages of several largish projects, I accumulated a list of things that
+share the following three properties:
+
+- they are irrelevant while the project is small,
+- they are a productivity multiplier when the project is large,
+- they are much harder to introduce down the line.
+
+Here's the list:
+
+## READMEs
+
+A project should have a _short_ one-page readme that is mostly links to more topical documentation.
+The two most important links are the user docs and the dev docs.
+
+A common failure is a readme growing haphazardly by accretion, such that it is neither a good
+landing page, nor a source of comprehensive docs on any particular topic. It is hard to refactor
+such an unstructured readme later. The information is valuable, if disorganized, but there
+isn't any better place to move it to.
+
+For developers, you generally want to have a docs folder in the repository. The docs folder should
+_also_ contain a short landing page describing the structure of the documentation. This structure
+should allow for both a small number of high quality curated documents, and a large number of ad-hoc
+append-only notes on any particular topic. For example, `docs/README.md` could point to carefully
+crafted `ARCHITECTURE.md` and `CONTRIBUTING.md`, which describe high level code and social
+architectures, and explicitly say that everything else in the `docs/` folder is a set of unorganized
+topical guides.
+
+Common failure modes here:
+
+a) There's no place where to put new developer documentation at all. As a result, no docs are
+   getting written, and, by the time you do need docs, the knowledge is lost.
+
+b) There's only highly  structured, carefully reviewed developer documentation. Contributing docs
+   requires a lot of efforts, and many small things go undocumented.
+
+c) There's only unstructured append-only pile of isolated documents. Things are _mostly_ documented,
+   often two or there times, but any new team member has to do the wheat from the chaff thing anew.
+
+## Website
+
+Most project can benefit from a dedicated website targeted at users. You want to have website ready
+when there are few-to-no users: usage compounds over time, so, if you find yourself with a
+significant number of users and no web "face", you've lost quite a bit of value already!
+
+Some other failure modes here:
+
+a) A different team manages the website. This prevents project developers from directly contributing
+   improvements, and may lead to divergence between the docs and the shipped product.
+
+b) Today's web stacks gravitate towards infinite complexity. It's all too natural to pick an "easy"
+   heavy framework at the start, and then get yourself into npm's bog. Website is about content, and
+   content has gravity. Whatever markup language dialect you choose at the beginning is going to
+   stay with for some time. Do carefully consider the choice of your web stack.
+
+c) Saying that which isn't quite done yet. Don't overpromise, it's much easier to say more later
+   than to take back your words, and humbleness might be a good marketing. Consider if you are in a
+   domain where engineering creds travel faster than buzz words. But this is situational. More
+   general advice would be that marketing also compounds over time, so it pays off to be deliberate
+   about your image from the start.
+
+## Internal Website
+
+This is more situational, but consider if, in addition to public-facing website, you also need an
+internal, engineering-facing one. At some point you'll probably need a bit more interactivity than
+what's available in a `README.md` --- perhaps you need a place to display code-related metrics like
+coverage or some javascript to compute release rotation. Having a place on the web where a
+contributor can place something they need right now without much red tape is nice!
+
+This is a recurring team --- you should be organized, you should not be organized. _Some_ things
+have large fan-out and should be guarded with careful review. _Other_ things benefit from just being
+there and a lightweight process. You need to create places for both kinds of things, and a clear
+decision rule about what goes where.
+
+For internal website, you'll probably need some kind of data store as well. If you want to track
+binary size across commits, _something_ needs to map commit hashes to (lets be optimistic)
+kilobytes! I don't know a good solution here. I use a JSON file in a github repository for similar
+purposes.
+
+## Process Docs
+
+There are many different ways to get some code into the main branch. Pick one, and spell it out in
+an `.md` file explicitly:
+
+* Are feature branches pushed to the central repository, or is anyone works off their fork? I find
+  forks work better in general as they automatically namespace everyone's branches, and put team
+  members and external contributors on equal footing.
+
+* If the repository is shared, what is the naming convention for branches? I prefix mine with
+  `matklad/`.
+
+* You use not-rocket-science rule (more on this later :).
+
+* Who should do code review of a particular PR? A single person, to avoid bystander effect and to
+  reduce notification fatigue. The reviewer is picked by the author of PR, as that's a stable
+  equilibrium in a high-trust team and cuts red tape.
+
+* How the reviewer knows that they need to review code? On GitHub, you want to _assign_ rather than
+  _request_ a review. Assign is level-triggered --- it won't go away until the PR is merged, and it
+  becomes the responsibility of the reviewer to help the PR along until it is merged (_request
+  review_ is still useful to poke the assignee after a round of feedback&changes). More generally,
+  code review is the highest priority task --- there's no reason for you to write more unreviewed
+  code if there's some work which is already done and is blocked on your review.
+
+* What is the purpose of review? Reviewing for correctness, for single voice, for idioms, for
+  knowledge sharing, for high-level architecture are choices! Explicitly spell out what makes most
+  sense in the context of your project.
+
+* Meta process docs: positively encourage contributing process documentation itself.
+
+## Style
+
+Speaking about meta process, style guide is where it is most practically valuable. Make sure that
+most stylistic comments during code reviews are immediately codified in the project-specific style
+document. New contributors should learn project's voice through a hundred repetitive comments on
+PRs, but through a hundred links to specific items of the style guide.
+
+Do you even need a project-specific style guide? I think you do --- cutting down mental energy for
+trivial decisions is helpful. If you need a result variable, and half of the functions call it `res`
+and another half of the functions call it `result`, making this choice is just distracting.
+
+Project-specific naming conventions is one of the more useful thing to place in the style guide.
+
+Optimize style guide for extensibility. Uplifting a comment from a code review to the style guide
+should be trivial.
+
+Ensure that there's a style tzar --- building consensus around _specific_ style choices is very
+hard, better to delegate the entire responsibility to one person who can make good enough choices.
+Style usually is not about what's better, it's about removing needless options in a semi-arbitrary
+ways.
+
+## Git
+
+Document stylistic details pertaining to git. If project uses `area:` prefixes for commits, spell
+out an expicit list of such prefixes.
+
+Consider documenting acceptable line length for the summary line. Git man page boldly declares that
+a summary should be under 50 characters, but that is just plain false. Even in the kernel, most
+summaries are somewhere between 50 and 80 characters.
+
+Definitely explicitly forbid adding large files to git. Repository size increases monotonically,
+`git clone` time is important.
+
+Document merge-vs-rebase thing. My preferred answer is:
+
+* A unit of change is a pull request, which might contain several commits
+* Merge commit for the pull request is what is being tested
+* The main branch contains only merge commits
+* Conversely, _only_ the main branch contains merge commits, pull requests themselves are always
+  rebased.
+
+Forbidding large files in the repo is a good policy, but it's a hard policy to follow. Over the
+lifetime of the project, someone somewhere will sneakily add and revert a megabyte of generated
+protobufs, and that will fly under code review radar. This brings us to the most basic thing of them
+all:
+
+## Not Rocket Science Rule
+
+Maintain a well-defined set of automated checks that pass on the main branch at all times. If you
+don't want large blobs in git repository, write a test rejecting large git objects and run that
+right before updating the main branch. No merge commits on feature branches? Write a test which
+fails with a pageful of Git self-help if one is detected. Want to wrap `.md` at 80 columns? Write a
+test :)
+
+This mindset of monotonically increasing set of properties that are true about the codebase is
+_incredibly_ powerful. You start seeing code as temporary, fluid thing that can always be changed
+relatively cheaply, and the accumulated set of automated tests as the real value of the project.
+
+Another second order effect is that NRSR puts a pressure to optimize your testing and a setup. If
+you don't have an option to merge the code when an unrelated flaky test fails, you won't have flaky
+tests.
+
+A common anti-pattern here is that a project grows a set of semi-checks --- tests that exists, but
+are not 100% reliable, and thus are not exercised by the CI routinely. And that creates ambiguity
+--- are tests failing due to a regression which should be fixed, or were they never reliable, and
+just test a property that isn't actually essential for functioning of the project? This fuzziness
+compounds over time. If a check isn't reliable enough to be part of NRSR CI gate, it isn't actually
+a check you care about, and should be removed.
+
+But to do NRSR, you need to build & CI your code first:
+
+## Build & CI
+
+This is a complex topic. Let's start with the basics: what is a build system? I would love to
+highlight a couple of slightly unconventional answers here.
+
+_First_, a build system is a bootstarp process: it is how you get from `git clone` to a working
+binary. The two aspects of this boostrapping process are important:
+
+* It should be simple. No
+  [`sudo apt-get install bazzilion packages`,]{.display}
+  the single binary of your build system should be able to bring everything else that's needed,
+  automatically.
+* It should be repeatable. Your laptop and your CI should end up with exactly equivalent set of
+  dependencies. The end result should be a function of commit hash, and not your local shell
+  history, otherwise NRSR doesn't work.
+
+_Second_, a build system is UI for doing things with the project. There should be a single, clearly
+documented command for building and testing the project. If it is not a single `makebelieve test`,
+something's wrong.
+
+One anti-pattern here is when the build system spills over to CI. When, to figure out what the set
+of checks even is, you need to read `.github/workflows/*.yml` to compile a list of commands. That's
+accidental complexity! Sprawling yamls are a bad entry point. Put all the logic into the build
+system and let the CI drive that, and not vice verse.
+
+There is a stronger version of the advice. No matter the size of the project, there's probably at
+most a handful of workflows that make sense for it: testing, running, releasing, etc. This small set
+of workflows should be nailed from the start, and specific commands should be documented. When the
+project subsequently grows in volumes, this set of build-system entry points should _not_ grow. If
+you add a Frobnicator, `makebelieve test` invocation _should_ test that Frobnicator works.
+
+Another anti pattern here is that a growing project gets a growing set of entry points, with
+dedicated `makebelieve test-frobnicator` and corresponding lines in CI yamls.
+
+_Finally_, a build system is a collection of commands to make stuff happen. In larger projects,
+you'll inevitably need some non-trivial amount of glue automation. Even if the entry point is just
+`makebelive release`, internally that might require any number of different tools to build, sign,
+tag, upload, validate, and generate a changelog for a new release.
+
+A common anti-pattern is to write these sorts of automations in bash and Python, but that's almost
+pure technical debt. These ecosystems are extremely finnicky in and off themselves, and, crucially
+(unless your project itself is written in bash or Python), they are a second ecosystem to what you
+already have in your project for "normal" code.
+
+But releasing software is also just code!
+
+It pays off to explicitly attack the problem of glue from the start, and to pick/write a library
+that makes writing subprocess wrangling logic easy.
+
+Summing build system and CI story up:
+
+Build system is self-contained, reproducible and takes on the task of downloading all external
+dependencies. Irrespective of size of the project, it contains O(1) different entry points. One of
+those entry points is triggered by the not rocket science rule CI infra to run the set of canonical
+checks. There's an explicit support for free-form automation, which is implemented in the same
+language as the bulk of the project.
+
+Integration with NRSR is the most important aspect of the build process, as it determines how the
+project evolves over time. Let's zoom in.
+
+## Testing
+
+Testing is a primary architectural concern. When the first line of code is written, you already
+should understand the big picture testing story. It is empathically _not_ "every class and module
+has unit-test". Testing should be data oriented --- the job of a particular software is to take some
+data in, transform it, and spit different data out. Overall testing strategy requires:
+
+- some way to specify/generate input data,
+- some way to assert desired properties of output data,
+- a way to run many individual checks very fast.
+
+If time is a meaningful part of the input data, it should be modeled explicitly. Not getting the
+testing architecture right usually results in:
+
+* Software that is hard to change because thousands of test nail existing internal APIs.
+* Software that is hard to change because there are no test to confidently verify absence of
+  breakages.
+* Software that is hard to change because each change requires hours of testing time to verify.
+
+How to architect a test suite goes beyond the scope of this article, but please read Unit and
+Integration tests and How To Test.
+
+Some specific things that are in scope for this article:
+
+Zero tolerance for flaky tests. Strict not rocket science rules gives this by construction --- if
+you can't merge _your_ pull request because someone elses test is flaky, that flaky test immediately
+becomes your problem.
+
+Fast tests. Again, NRSR already provides a natural pressure for this, but it also helps to make
+testing time more salient otherwise. Just printing the total test time and five slowest test in a
+run by default goes a long way.
+
+Not all tests could be fast. Continuing the ying-yang theme of embracing order and chaos
+simultaneously, it helps to introduce the concept of slow tests early on, and make sure that, while
+CI always runs the full suite of tests, fast and slow, the local `makebelive test` runs only fast
+test by defaults, with an opt-in for slow tests.
+
+Introduce a [snapshot testing](https://ianthehenry.com/posts/my-kind-of-repl/) library early.
+Although the bulk of tests should probably use project-specific testing harness, for everything else
+inline repl-driven snapshot testing is a good default approach, and is something costly to introduce
+once you've accumulated a body of non-snapshot-based tests.
+
+Alongside the tests, come the benchmarks.
+
+## Benchmarking
+
+I don't have a grand about how to make benchmark work in a large, living project, it always feels
+like a struggle to me. I do have a couple of tactical tips though.
+
+_Firstly_, any code that is _not_ run during NRSR is effectively dead. It is exceedingly common for
+benchmarks to be added alongside a performance improvement, and then _not_ getting hooked up with
+CI. So, two month down the line, the benchmark either stops compiling outright, or maybe just panics
+at a startup due to some unrelated change.
+
+This fix here is to make sure that every benchmark is _also_ a test. Parametrize every benchmark by
+input size, such that with a small input it finishes in milliseconds. Then write a test that
+literally just calls the benchmarking code with this small input. And remember that your build
+system should have O(1) entry points. Plug this into a [`makebelieve test`,]{.display} not into a
+dedicated [`makebelieve benchmark --small-size`.]{.display}
+
+_Secondly_, any large project has a certain amount of very important macro metrics.
+
+* How long does it take to build?
+* How long does it take to test?
+* How large is the resulting artifact shipping to users?
+
+These are some of the questions that always matter. You need infrastructure to track these numbers,
+and to see them regularly. This where the internal website and its data store come in. During CI,
+note those number. After CI run, upload a record with commit hash, metric name, metric value
+_somewhere_. Don't worry if the results are noisy --- you target the baseline here, ability to
+notice large changes over time.
+
+Two options for the "upload" part:
+
+* Just put them into some `.json` file in a git repo, and LLM a bit of javascript to draw the graph
+  from these data.
+
+* https://nyrkio.com is a surprisingly good SaaS offering that I can recommend.
+
+## Culture Eats Strategy for Breakfast
+
+
+## Summary
+
+That's a lot of small points! Here's a summary list for convenient reference:
+
+* README as a landing page.
+* Dev docs.
+* User docs.
+* Structured dev docs (architecture and processes).
+* Unstructured ingest-optimized dev docs (code style, topical guides).
+* User website, beware of content gravity.
+* Ingest-optimized internal web site.
+* Meta documentation process --- its everyone job to append to code style and process docs.
+* Clear code review protocol (in whose court is the ball currently?).
+* Automated check for no large blobs in a git repo.
+* Not rocket science rule.
+* Let's repeat: at *all* times, the main branch points at a commit hash which is known to pass a
+  set of well-defined checks.
+* No semi tests: if the code is not good enough to add to NRSR, it is deleted.
+* No flaky tests (mostly by construction from NRSR).
+* Single command build.
+* Reproducible build.
+* Fixed number of build system entry points. No separate lint step, a lint is a kind of a test.
+* CI delegates to the build system.
+* Space for ad-hoc automation in the main language
+* Overarching testing infrastructure, grand unified theory of project's testing.
+* Fast/Slow test split (fast=seconds per test suite, slow=low digit minutes per test suite).
+* Snapshot testing.
+* Benchmarks are tests.
+* Macro metrics tracking (time to build, time to test).
+
+
+
+
+
+- Testing with expectations library
+- No YAML
+- Release Process
+- One tool
+
+Done:
+
+- Non-rotting benchmarking
+- Tracking build time
+- Tracking binary size
+- Benchmarks as tests
+- `area:` prefixes
+- no merge commits
+- summary like 80 chars
+- Readme for the user
+- Readme for the contributor
+- Website (no npm nonsenese)
+- Internal Website
+- Internal Website Data Store
+- Not Rocket Science Rule
+- O(1) build file
+- Protocol for reviewing and merging code
+- Single Command Build
+- Fast tests
+- Gateway for slow tests
